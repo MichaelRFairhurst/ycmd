@@ -24,7 +24,7 @@ from ycmd import utils
 from ycmd import responses
 from ycmd.completers.completer import Completer
 
-DART_FILETYPES = set( [ 'dart' ] )
+DART_FILETYPES = set( [ 'dart', 'html' ] )
 
 
 def PathToDartBinDir( user_options ):
@@ -102,15 +102,17 @@ class AnalysisService( object ):
       self._process.stdin.flush()
       while True:
         line = self._process.stdout.readline()
-        response = json.loads( line )
-        if ( 'id' in response ) and ( response[ 'id' ] == request_id ):
-          if 'error' in response:
-            raise Exception( response[ 'error' ] )
-          elif 'result' in response:
-            return response[ 'result' ]
-          else:
-            return None
-
+        try:
+          response = json.loads( line )
+          if ( 'id' in response ) and ( response[ 'id' ] == request_id ):
+            if 'error' in response:
+              raise Exception( response[ 'error' ] )
+            elif 'result' in response:
+              return response[ 'result' ]
+            else:
+              return None
+        except ValueError:
+          None
 
   def SetAnalysisRoots( self, included, excluded, packageRoots ):
     return self._SendRequest(
